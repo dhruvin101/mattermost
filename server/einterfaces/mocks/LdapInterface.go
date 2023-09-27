@@ -47,13 +47,13 @@ func (_m *LdapInterface) CheckPasswordAuthData(c *request.Context, authData stri
 	return r0
 }
 
-// CheckProviderAttributes provides a mock function with given fields: LS, ouser, patch
-func (_m *LdapInterface) CheckProviderAttributes(LS *model.LdapSettings, ouser *model.User, patch *model.UserPatch) string {
-	ret := _m.Called(LS, ouser, patch)
+// CheckProviderAttributes provides a mock function with given fields: c, LS, ouser, patch
+func (_m *LdapInterface) CheckProviderAttributes(c *request.Context, LS *model.LdapSettings, ouser *model.User, patch *model.UserPatch) string {
+	ret := _m.Called(c, LS, ouser, patch)
 
 	var r0 string
-	if rf, ok := ret.Get(0).(func(*model.LdapSettings, *model.User, *model.UserPatch) string); ok {
-		r0 = rf(LS, ouser, patch)
+	if rf, ok := ret.Get(0).(func(*request.Context, *model.LdapSettings, *model.User, *model.UserPatch) string); ok {
+		r0 = rf(c, LS, ouser, patch)
 	} else {
 		r0 = ret.Get(0).(string)
 	}

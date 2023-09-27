@@ -1082,7 +1082,7 @@ func (a *App) CheckProviderAttributes(c *request.Context, user *model.User, patc
 	conflictField := ""
 	if a.Ldap() != nil &&
 		(user.IsLDAPUser() || (user.IsSAMLUser() && *SamlSettings.EnableSyncWithLdap)) {
-		conflictField = a.Ldap().CheckProviderAttributes(LdapSettings, user, patch)
+		conflictField = a.Ldap().CheckProviderAttributes(c, LdapSettings, user, patch)
 	} else if a.Saml() != nil && user.IsSAMLUser() {
 		conflictField = a.Saml().CheckProviderAttributes(c, SamlSettings, user, patch)
 	} else if user.IsOAuthUser() {
