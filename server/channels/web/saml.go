@@ -71,7 +71,7 @@ func loginWithSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		relayState = b64.StdEncoding.EncodeToString([]byte(model.MapToJSON(relayProps)))
 	}
 
-	data, err := samlInterface.BuildRequest(relayState)
+	data, err := samlInterface.BuildRequest(c.AppContext, relayState)
 	if err != nil {
 		c.Err = err
 		return
