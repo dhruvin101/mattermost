@@ -2,6 +2,7 @@
 set -e -u -o pipefail
 cd $(dirname $0)
 . .e2erc
+. .e2erc_cypress
 
 # Set required variables
 TEST_FILTER_DEFAULT='--stage=@prod --group=@smoke'

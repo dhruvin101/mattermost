@@ -1,11 +1,20 @@
 # Utility variables
 # NB: these assume you `source` them from the directory this file is in
-export MME2E_DC_SERVER="docker compose -p mmserver -f $(readlink -f ../../server/build/gitlab-dc.postgres.yml) -f $(readlink -f ./server.override.yml)"
-export MME2E_DC_DASHBOARD="docker compose -p mmdashboard -f $(readlink -f ./dashboard/docker/docker-compose.yml) -f $(readlink -f ./dashboard.override.yml)"
 export MME2E_UID=$(id -u)
 export MME2E_OSTYPE=$(docker version -f '{{ .Client.Os }}')
 export MME2E_ARCHTYPE=$(docker version -f '{{ .Client.Arch }}')
 export NODE_VERSION_REQUIRED=$(cat ../../.nvmrc)
+
+# Check if docker-compose.server.override.yml exists
+if [ -f docker-compose.server.override.yml ]; then
+  export DC_FILE="docker-compose.server.override.yml"
+  log_message="Using override setup with $DC_FILE"
+else
+  export DC_FILE="docker-compose.server.yml"
+  log_message="Using base setup with $DC_FILE"
+fi
+
+export MME2E_DC_SERVER="docker compose -p mmserver -f $(readlink -f ./$DC_FILE)"
 
 # Default values for optional variables
 export SERVER_IMAGE_DEFAULT="mattermostdevelopment/mm-ee-test:$(git rev-parse --short=7 HEAD)"
@@ -34,12 +43,12 @@ mme2e_get_current_shopt_arg () {
   esac
 }
 mme2e_load_env_file () {
-  # This loads the ./env file. Variables are automatically exported
-  [ -f ./env ] || return 0
+  # This loads the ./.env file. Variables are automatically exported
+  [ -f ./.env ] || return 0
   MME2E_PREVIOUS_ALLEXPORT=$(mme2e_get_current_shopt_arg allexport)
   set -o allexport
-  mme2e_log "Loading env file"
-  . ./env
+  mme2e_log "Loading .env file"
+  . ./.env
   set ${MME2E_PREVIOUS_ALLEXPORT}
 }
 mme2e_generate_envfile_from_var_names () {
@@ -92,10 +101,7 @@ mme2e_legacy_setup () {
   docker network inspect ${COMPOSE_PROJECT_NAME} >/dev/null 2>&1 || docker network create --driver=${DOCKER_NETWORK_DRIVER} ${COMPOSE_PROJECT_NAME}
 }
 
-# Utility alias, for interactive shell usage. Can be reversed with 'unalias docker-compose' in your shell
-# NB: this won't work in the script
-alias docker-compose-mmserver="${MME2E_DC_SERVER}"
-alias docker-compose-mmdashboard="${MME2E_DC_DASHBOARD}"
+mme2e_log "Preparing server: $log_message"
 
 # Call prerequisite utility functions
 mme2e_load_env_file

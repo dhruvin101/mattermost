@@ -1,0 +1,13 @@
+# Utility variables
+# NB: these assume you `source` them from the directory this file is in
+
+export MME2E_DC_SERVER="docker compose -p mmserver -f $(readlink -f ./$DC_FILE) -f $(readlink -f ./docker-compose.playwright.yml)"
+
+# NB:
+# - Playwright entire tests require a test server with postgres and inbucket only.
+# - Add more services by setting ENABLED_DOCKER_SERVICES environment variable as needed especially when adding new test.
+export ENABLED_DOCKER_SERVICES=${ENABLED_DOCKER_SERVICES:-postgres inbucket}
+
+# Utility alias, for interactive shell usage. Can be reversed with 'unalias docker-compose' in your shell
+# NB: this won't work in the script
+alias docker-compose-mmserver="${MME2E_DC_SERVER}"

@@ -114,8 +114,10 @@ jobs:
           ln -sfn /usr/local/opt/docker-compose/bin/docker-compose ~/.docker/cli-plugins/docker-compose
           sudo ln -sf $HOME/.colima/default/docker.sock /var/run/docker.sock
       - name: ci/e2e-smoketests
+        env:
+          ENABLED_DOCKER_SERVICES: postgres inbucket
         run: |
-          make
+          make cypress
       - name: ci/e2e-smoketests-store-results
         uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2
         with:

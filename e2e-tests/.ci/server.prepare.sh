@@ -2,6 +2,7 @@
 set -e -u -o pipefail
 cd $(dirname $0)
 . .e2erc
+. .e2erc_cypress
 
 # Install cypress dependencies
 mme2e_log "Prepare Cypress: install dependencies"
@@ -17,11 +18,12 @@ ${MME2E_DC_SERVER} exec -T -- server curl -L --silent https://github.com/matterm
 ${MME2E_DC_SERVER} exec -T -- server curl -L --silent https://github.com/mattermost/mattermost-plugin-demo/releases/download/v0.8.0/com.mattermost.demo-plugin-0.8.0.tar.gz | ${MME2E_DC_SERVER} exec -T -u $MME2E_UID -- cypress tee tests/fixtures/com.mattermost.demo-plugin-0.8.0.tar.gz >/dev/null
 ${MME2E_DC_SERVER} exec -T -u $MME2E_UID -- cypress tee tests/fixtures/keycloak.crt >/dev/null <../../server/build/docker/keycloak/keycloak.crt
 
-# Inject test data, prepare for E2E tests
-mme2e_log "Prepare Server: injecting E2E test data"
-${MME2E_DC_SERVER} exec -T -- server mmctl config set TeamSettings.MaxUsersPerTeam 100 --local
-${MME2E_DC_SERVER} exec -T -- server mmctl sampledata -u 60 --local
-${MME2E_DC_SERVER} exec -T -- openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest' <../../server/tests/test-data.ldif
-${MME2E_DC_SERVER} exec -T -- minio sh -c 'mkdir -p /data/mattermost-test'
+if [[ $ENABLED_DOCKER_SERVICES == *"openldap"* ]]; then
+  ${MME2E_DC_SERVER} exec -T -- openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest' <../../server/tests/test-data.ldif
+fi
+
+if [[ $ENABLED_DOCKER_SERVICES == *"minio"* ]]; then
+  ${MME2E_DC_SERVER} exec -T -- minio sh -c 'mkdir -p /data/mattermost-test'
+fi
+
 mme2e_log "Mattermost is running and ready for E2E testing"
-mme2e_log "You can use the test data credentials for logging in (username=sysadmin password=Sys@dmin-sample1)"

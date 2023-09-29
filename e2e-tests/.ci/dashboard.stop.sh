@@ -2,6 +2,7 @@
 set -e -u -o pipefail
 cd $(dirname $0)
 . .e2erc
+. .e2erc_cypress
 
 if [ -d dashboard ]; then
   mme2e_log "Stopping the dashboard containers"

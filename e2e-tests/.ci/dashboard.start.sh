@@ -2,6 +2,7 @@
 set -e -u -o pipefail
 cd $(dirname $0)
 . .e2erc
+. .e2erc_cypress
 
 MME2E_DASHBOARD_REF_DEFAULT="origin/main"
 MME2E_DASHBOARD_REF=${MME2E_DASHBOARD_REF:-$MME2E_DASHBOARD_REF_DEFAULT}
@@ -9,7 +10,9 @@ MME2E_DASHBOARD_REF=${MME2E_DASHBOARD_REF:-$MME2E_DASHBOARD_REF_DEFAULT}
 mme2e_log "Cloning the automation-dashboard project"
 if [ ! -d dashboard ]; then
   git clone https://github.com/saturninoabril/automation-dashboard.git dashboard
-  . .e2erc # Must reinitialize some variables that depend on the dashboard repo being checked out
+  # Must reinitialize some variables that depend on the dashboard repo being checked out
+  . .e2erc
+  . .e2erc_cypress
 fi
 git -C dashboard fetch
 git -C dashboard checkout $MME2E_DASHBOARD_REF
