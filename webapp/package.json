@@ -49,8 +49,6 @@
   },
   "workspaces": [
     "channels",
-    "platform/client",
-    "platform/components",
-    "platform/types"
+    "platform/*"
   ]
 }
