@@ -1,10 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import React, { ReactNode } from 'react';
+import { FormattedMessage } from 'react-intl';
 
-import {Client4} from 'mattermost-redux/client';
+import { Client4 } from 'mattermost-redux/client';
 
 import ExternalLink from 'components/external_link';
 import WarningIcon from 'components/widgets/icons/fa_warning_icon';
@@ -18,20 +18,40 @@ import ClusterTableContainer from './cluster_table_container';
 import SettingsGroup from './settings_group';
 import TextSetting from './text_setting';
 
-export default class ClusterSettings extends AdminSettings {
-    getConfigFromState = (config) => {
+interface ClusterSettingsState {
+    Enable: boolean;
+    ClusterName: string;
+    OverrideHostname: string;
+    UseIPAddress: boolean;
+    EnableExperimentalGossipEncryption: boolean;
+    EnableGossipCompression: boolean;
+    GossipPort: string;
+    StreamingPort: string;
+    showWarning: boolean;
+}
+
+interface ClusterSettingsProps {
+    license: {
+        IsLicensed: string;
+        Cluster: string;
+    };
+    isDisabled: boolean;
+}
+
+export default class ClusterSettings extends AdminSettings<ClusterSettingsProps, ClusterSettingsState> {
+    getConfigFromState = (config: any): any => {
         config.ClusterSettings.Enable = this.state.Enable;
         config.ClusterSettings.ClusterName = this.state.ClusterName;
         config.ClusterSettings.OverrideHostname = this.state.OverrideHostname;
         config.ClusterSettings.UseIPAddress = this.state.UseIPAddress;
         config.ClusterSettings.EnableExperimentalGossipEncryption = this.state.EnableExperimentalGossipEncryption;
         config.ClusterSettings.EnableGossipCompression = this.state.EnableGossipCompression;
-        config.ClusterSettings.GossipPort = this.parseIntNonZero(this.state.GossipPort, 8074);
-        config.ClusterSettings.StreamingPort = this.parseIntNonZero(this.state.StreamingPort, 8075);
+        config.ClusterSettings.GossipPort = this.parseIntNonZero(this.state.GossipPort, '8074');
+        config.ClusterSettings.StreamingPort = this.parseIntNonZero(this.state.StreamingPort, '8075');
         return config;
     };
 
-    getStateFromConfig(config) {
+    getStateFromConfig(config: any): ClusterSettingsState {
         const settings = config.ClusterSettings;
 
         return {
@@ -41,13 +61,21 @@ export default class ClusterSettings extends AdminSettings {
             UseIPAddress: settings.UseIPAddress,
             EnableExperimentalGossipEncryption: settings.EnableExperimentalGossipEncryption,
             EnableGossipCompression: settings.EnableGossipCompression,
-            GossipPort: settings.GossipPort,
-            StreamingPort: settings.StreamingPort,
+            GossipPort: settings.GossipPort.toString(), // Ensure GossipPort and StreamingPort are strings
+            StreamingPort: settings.StreamingPort.toString(),
             showWarning: false,
         };
     }
 
-    renderTitle() {
+    overrideHandleChange = (id: string, value: any) => {
+        this.setState({
+            showWarning: true,
+        });
+
+        this.handleChange(id, value);
+    };
+
+    renderTitle(): ReactNode {
         return (
             <FormattedMessage
                 id='admin.advance.cluster'
@@ -56,21 +84,13 @@ export default class ClusterSettings extends AdminSettings {
         );
     }
 
-    overrideHandleChange = (id, value) => {
-        this.setState({
-            showWarning: true,
-        });
-
-        this.handleChange(id, value);
-    };
-
-    renderSettings = () => {
+    renderSettings = (): ReactNode => {
         const licenseEnabled = this.props.license.IsLicensed === 'true' && this.props.license.Cluster === 'true';
         if (!licenseEnabled) {
             return null;
         }
 
-        var configLoadedFromCluster = null;
+        let configLoadedFromCluster: ReactNode | null = null;
 
         if (Client4.clusterId) {
             configLoadedFromCluster = (
@@ -78,13 +98,13 @@ export default class ClusterSettings extends AdminSettings {
                     style={style.configLoadedFromCluster}
                     className='alert alert-warning'
                 >
-                    <WarningIcon/>
+                    <WarningIcon />
                     <FormattedMessage
                         id='admin.cluster.loadedFrom'
                         defaultMessage='This configuration file was loaded from Node ID {clusterId}. Please see the Troubleshooting Guide in our <link>documentation</link> if you are accessing the System Console through a load balancer and experiencing issues.'
                         values={{
                             clusterId: Client4.clusterId,
-                            link: (msg) => (
+                            link: (msg: string) => (
                                 <ExternalLink
                                     location='cluster_settings'
                                     href={DocLinks.HIGH_AVAILABILITY_CLUSTER}
@@ -98,7 +118,7 @@ export default class ClusterSettings extends AdminSettings {
             );
         }
 
-        var warning = null;
+        let warning: ReactNode | null = null;
 
         if (this.state.showWarning) {
             warning = (
@@ -106,12 +126,12 @@ export default class ClusterSettings extends AdminSettings {
                     style={style.warning}
                     className='alert alert-warning'
                 >
-                    <WarningIcon/>
+                    <WarningIcon />
                     <FormattedMessage
                         id='admin.cluster.should_not_change'
                         defaultMessage='WARNING: These settings may not sync with the other servers in the cluster. High Availability inter-node communication will not start until you modify the config.json to be identical on all servers and restart Mattermost. Please see the <link>documentation</link> on how to add or remove a server from the cluster. If you are accessing the System Console through a load balancer and experiencing issues, please see the Troubleshooting Guide in our <link>documentation</link>.'
                         values={{
-                            link: (msg) => (
+                            link: (msg: string) => (
                                 <ExternalLink
                                     location='cluster_settings'
                                     href={DocLinks.HIGH_AVAILABILITY_CLUSTER}
@@ -125,9 +145,9 @@ export default class ClusterSettings extends AdminSettings {
             );
         }
 
-        var clusterTableContainer = null;
+        let clusterTableContainer: ReactNode | null = null;
         if (this.state.Enable) {
-            clusterTableContainer = (<ClusterTableContainer/>);
+            clusterTableContainer = (<ClusterTableContainer />);
         }
 
         return (
@@ -154,7 +174,7 @@ export default class ClusterSettings extends AdminSettings {
                             id='admin.cluster.enableDescription'
                             defaultMessage='When true, Mattermost will run in High Availability mode. Please see <link>documentation</link> to learn more about configuring High Availability for Mattermost.'
                             values={{
-                                link: (msg) => (
+                                link: (msg: string) => (
                                     <ExternalLink
                                         location='cluster_settings'
                                         href={DocLinks.HIGH_AVAILABILITY_CLUSTER}
@@ -313,6 +333,6 @@ export default class ClusterSettings extends AdminSettings {
 }
 
 const style = {
-    configLoadedFromCluster: {marginBottom: 10},
-    warning: {marginBottom: 10},
+    configLoadedFromCluster: { marginBottom: 10 },
+    warning: { marginBottom: 10 },
 };
